@@ -17,14 +17,13 @@ create table classroom (
     
 create table readings (
 	classRoom varchar(30),
-    startInstance int primary key,
+    startInstance int,
     endInstance int,
-    people int,
-    foreign key(classRoom) references classroom(classRoom));
+    people int);
     
 create table admins (
 	adminName varchar(80) primary key,
     pword varchar(80) unique);
     
-insert into classroom values ('CR8',3,2);
+insert into classroom values ('cr8',3,2);
 insert into admins values ('hadi','1234');

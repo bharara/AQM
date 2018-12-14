@@ -11,10 +11,10 @@ SensorDB = conn.cursor()
 
 
 def readAndStore():
-	#global startingPoint
 	try:
 		ser = serial.Serial('COM5', 9600)
-		startingPoint = int(SensorDB.execute('Select max(idData) from data'))
+		startingPoint = int(SensorDB.execute('Select idData from data'))
+		count = 0
 		while True:
 			total1 = 0
 			total2 = 0
@@ -27,15 +27,18 @@ def readAndStore():
 			print("Average1 = "+str(total1/30))
 			print("Average2 = "+str(total2/30))
 			SensorDB.execute("""INSERT INTO data (val1, val2) VALUES ("%d", "%d")""" % (total1/30, total2/30))
+			count+=1
 
 	except serial.serialutil.SerialException:
 		conn.commit()
-		stopReading()
+		stopReading(startingPoint, count)
 		print("Done Reading")
 
-def stopReading():
-	endPoint = int(SensorDB.execute('Select max(idData) from data'))
-	SensorDB.execute("""INSERT INTO readings (classRoom, startInstance, endInstance, people) VALUES ("%s" , "%d" , %d", "%d")""" % (room, startingPoint, endPoint, numberOfPeople))
+def stopReading(startingPoint, count):
+	endPoint = startingPoint + count
+	insertS = "INSERT INTO readings (classRoom, startInstance, endInstance, people) VALUES ('"+room+"',"+str(startingPoint)+","+str(endPoint)+","+str(numberOfPeople)+")"
+	print(room, startingPoint, endPoint, numberOfPeople)
+	SensorDB.execute(insertS)
 	conn.commit()
 	SensorDB.close()
 	conn.close()
