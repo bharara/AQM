@@ -4,7 +4,6 @@ import serial
 
 app = Flask(__name__)
 isLogIn = False
-users = [('hadi','1234')]
 
 ## ============  SQL FUNCTIONS ==================
 def serverSetup ():
@@ -17,9 +16,8 @@ def serverSetup ():
     db='sensor')
 	SensorDB = conn.cursor()
 
-def readAndStore(room, numberOfPeople):
+def readAndStore(ser, room, numberOfPeople):
 	try:
-		ser = serial.Serial('COM5', 9600)
 		SensorDB.execute('Select max(idData) from data')
 		startingPoint = SensorDB.fetchall()[0][0]
 		while keepReading():
@@ -67,7 +65,8 @@ def about():
 @app.route('/login')
 def loginPage():
 	if isLogIn:
-		return redirect ('/admin')
+		####################################
+		return redirect ('/login')
 	else:
 		return render_template('login.html', title = 'Admin Login - AQM', flashyMsg = '')		
 
@@ -75,8 +74,6 @@ def loginPage():
 ## ============== ADMIN Pages ===============
 @app.route('/login', methods=['POST'])
 def loginAfter():
-
-	global isLogIn
 	name = request.form["name"].lower()
 	password = request.form['pword']
 
@@ -96,23 +93,85 @@ def adminPanel():
 	else:
 		return redirect('/login')
 
-@app.route('/readData', methods = ['POST'])
+@app.route('/readData')
 def readData():
+	if isLogIn:
+		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = '')
+	else:
+		return redirect('/login')
+
+@app.route('/readData', methods = ['POST'])
+def readDataAfter():
 	room = request.form('classRoom')
 	numberOfPeople = request.form('people')
 
-	SensorDB.execute('Select * from admins')
+	SensorDB.execute('Select classRoom from classroom')
 	crooms = SensorDB.fetchall()
 	if (room,) in crooms:
-		readAndStore(room, numberOfPeople)
-	else:
-		return render_template('readData.html', title = 'Admin Panel - AQM', flashyMsg = "This classroom doesn't exist")
+		try:
+			ser = serial.Serial('COM5', 9600)
+		except:
+			return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "Sensor Not Connected")
 
+		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "Data Reading Has started", reading = True)
+		readAndStore(ser, room, numberOfPeople)
+	else:
+		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "This classroom doesn't exist")
+
+@app.route('/addCR',)
+def addCR():
+	if isLogIn:
+		return render_template('addCR.html', title = 'Add Classrooms - AQM', flashyMsg = '')
+	else:
+		return redirect('/login')
+
+@app.route('/addCR', methods = ['POST'])
+def addCRAfter():
+	room = request.form('classRoom')
+	openings = request.form('openings')
+	floorplan = request.form('floorplan')
+
+	SensorDB.execute('Select classRoom from classroom')
+	crooms = SensorDB.fetchall()
+	if (room,) in crooms:
+		return render_template('addCR.html', title = 'Add Classrooms - AQM', flashyMsg = 'ClassRoom already exist')
+	else:
+		add = room  + ',' + str(openings) + ',' + str(floorplan)
+		SensorDB.execute('INSERT INTO classroom (classRoom, openings, floorplan) VALUES ('+add+')')
+		return render_template('addCR.html', title = 'Add Classrooms - AQM', flashyMsg = 'ClassRoom added')
+
+@app.route('/addAdmin',)
+def addAdmin():
+	if isLogIn:
+		print(isLogIn)
+		return render_template('addAdmin.html', title = 'Add New Admin - AQM', flashyMsg = '')
+	else:
+		return redirect('/login')
+
+@app.route('/addAdmin', methods = ['POST'])
+def addAdminAfter():
+	name = request.form('name')
+	pword = request.form('pword')
+
+	SensorDB.execute('Select adminName from admins')
+	users = SensorDB.fetchall()
+	if (name,) in users:
+		return render_template('addAdmin.html', title = 'Add New Admin - AQM', flashyMsg = 'Username already taken')
+	else:
+		add = name + ',' + str(pword)
+		SensorDB.execute('INSERT INTO admins (adminName, pword) VALUES ('+add+')')
+		return render_template('addCR.html', title = 'Add New Admin - AQM', flashyMsg = 'Admin added')
+
+@app.route('/Logout',)
+def Logout():
+	if isLogIn:
+		isLogIn = False
+	return redirect('/login')
 
 ## =============== MAIN ==============
 serverSetup()
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True)
 
 conn.close()
 SensorDB.close()
