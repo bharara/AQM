@@ -5,7 +5,7 @@ import serial
 app = Flask(__name__)
 isLogIn = False
 
-## ============  SQL FUNCTIONS ==================
+## ====================  SQL FUNCTIONS ========================
 def serverSetup ():
 	global conn, SensorDB
 	conn = pymysql.connect(
@@ -25,7 +25,8 @@ def readAndStore(ser, room, numberOfPeople):
 			for n in range(30):
 				j = int(str(ser.readline())[2:4])
 				total += j
-			SensorDB.execute('INSERT INTO data (value) VALUES ('+str(total/30)+')')
+			SensorDB.execute("""INSERT INTO data (value) VALUES ("%d")"""
+			% (total/30))
 		conn.commit()
 	except serial.serialutil.SerialException:
 		if startingPoint != 0:
@@ -36,9 +37,10 @@ def readAndStore(ser, room, numberOfPeople):
 def stopReading(startingPoint, room, numberOfPeople):
 	SensorDB.execute('Select max(idData) from data')
 	endingPoint = SensorDB.fetchall()[0][0]
-	add = str(startingPoint) + ',' + room + ',' + str(endingPoint) + ',' + str(numberOfPeople)
-	SensorDB.execute('INSERT INTO readings (classRoom, startInstance, endInstance, people) VALUES ('+add+')')	
-
+	SensorDB.execute("""INSERT INTO readings (classRoom, startInstance, endInstance, people)
+		VALUES  ("%d", "%s", "%d", "%d")"""
+		% (startingPoint, room, endingPoint, numberOfPeople))
+	conn.commit()
 
 ## ========================  WEBSITE ==========================
 
@@ -48,19 +50,55 @@ def Index():
 
 @app.route('/class')
 def classRoom():
-	render_template('classroom.html', title = "Classrooms - AQM")
+	return render_template('classroom.html', title = "Classrooms - AQM")
 
-@app.route('/indicator')
+@app.route('/indicators')
 def indicator():
-	render_template('indicator.html', title = "Indicators - AQM")
+
+	ch4 = [[10,481], [40,682], [30,911], [35,441]]
+	return render_template('indicators.html', title = "Indicators - AQM", ch4=sorted(ch4))
+
+#User Report Shown
+@app.route('/indicators/<name>')
+def indicator2(name):
+
+	if name == "ch4":
+		SensorDB.execute("""SELECT val1, people
+			FROM data, readings
+			WHERE idData >= readings.startInstance
+			and idData < readings.endInstance""")
+
+		data = SensorDB.fetchall()
+		title = "People to CH4"
+
+	if name == "smoke":
+		SensorDB.execute("""SELECT val2, people
+			FROM data, readings
+			WHERE idData >= readings.startInstance
+			and idData < readings.endInstance""")
+
+		data = SensorDB.fetchall()
+		title = "People to Smoke"
+
+	if name == "open":
+		SensorDB.execute("""SELECT (val1+val2)/2, openings
+			FROM data, readings, classroom
+			WHERE idData >= readings.startInstance
+			and idData < readings.endInstance
+			and readings.classRoom = classroom.classRoom""")
+
+		data = SensorDB.fetchall()
+		title = "Air Quality to Room openings"
+
+	return render_template('indicatorsChar.html', title=title, data=sorted(data))
 
 @app.route('/live')
 def live():
-	render_template('live.html', title = "Live Data - AQM")
+	return render_template('live.html', title = "Live Data - AQM")
 
 @app.route('/about')
 def about():
-	render_template('about.html', title = "About AQM")
+	return render_template('about.html', title = "About AQM")
 
 @app.route('/login')
 def loginPage():
@@ -89,6 +127,7 @@ def loginAfter():
 
 @app.route('/admin')
 def adminPanel():
+	global isLogIn
 	if isLogIn:
 		return render_template('adminPanel.html', title = 'Admin Panel - AQM', flashyMsg = '')
 	else:
@@ -96,6 +135,7 @@ def adminPanel():
 
 @app.route('/readData')
 def readData():
+	global isLogIn
 	if isLogIn:
 		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = '')
 	else:
@@ -103,8 +143,8 @@ def readData():
 
 @app.route('/readData', methods = ['POST'])
 def readDataAfter():
-	room = request.form('classRoom')
-	numberOfPeople = request.form('people')
+	room = request.form['classRoom']
+	numberOfPeople = request.form['people']
 
 	SensorDB.execute('Select classRoom from classroom')
 	crooms = SensorDB.fetchall()
@@ -128,45 +168,46 @@ def addCR():
 
 @app.route('/addCR', methods = ['POST'])
 def addCRAfter():
-	room = request.form('classRoom')
-	openings = request.form('openings')
-	floorplan = request.form('floorplan')
+	room = request.form['classRoom']
+	openings = int(request.form['openings'])
+	floorplan = int(request.form['floorplan'])
 
 	SensorDB.execute('Select classRoom from classroom')
 	crooms = SensorDB.fetchall()
 	if (room,) in crooms:
 		return render_template('addCR.html', title = 'Add Classrooms - AQM', flashyMsg = 'ClassRoom already exist')
 	else:
-		add = room  + ',' + str(openings) + ',' + str(floorplan)
-		SensorDB.execute('INSERT INTO classroom (classRoom, openings, floorplan) VALUES ('+add+')')
+		SensorDB.execute("""INSERT INTO classroom (classRoom, openings, floorplan) VALUES ("%s", "%d", "%d")"""
+			% (room, openings, floorplan))
+		conn.commit()
 		return render_template('addCR.html', title = 'Add Classrooms - AQM', flashyMsg = 'ClassRoom added')
 
 @app.route('/addAdmin',)
 def addAdmin():
 	if isLogIn:
-		print(isLogIn)
 		return render_template('addAdmin.html', title = 'Add New Admin - AQM', flashyMsg = '')
 	else:
 		return redirect('/login')
 
 @app.route('/addAdmin', methods = ['POST'])
 def addAdminAfter():
-	name = request.form('name')
-	pword = request.form('pword')
+	name = request.form['name'].lower()
+	pword = request.form['pword']
 
 	SensorDB.execute('Select adminName from admins')
 	users = SensorDB.fetchall()
 	if (name,) in users:
 		return render_template('addAdmin.html', title = 'Add New Admin - AQM', flashyMsg = 'Username already taken')
 	else:
-		add = name + ',' + str(pword)
-		SensorDB.execute('INSERT INTO admins (adminName, pword) VALUES ('+add+')')
-		return render_template('addCR.html', title = 'Add New Admin - AQM', flashyMsg = 'Admin added')
+		SensorDB.execute("""INSERT INTO admins (adminName, pword) VALUES ("%s", "%s")"""
+			% (name, str(pword)))
+		conn.commit()
+		return render_template('addAdmin.html', title = 'Add New Admin - AQM', flashyMsg = 'Admin added')
 
-@app.route('/Logout',)
+@app.route('/logout',)
 def Logout():
-	if isLogIn:
-		isLogIn = False
+	global isLogIn
+	isLogIn = False
 	return redirect('/login')
 
 ## =============== MAIN ==============
