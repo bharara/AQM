@@ -11,11 +11,21 @@
 	<header>
 		<!--Navigation-->
 		<nav>
-			<ul>
-			  <li><a href="#home">Home</a></li>
-			  <li><a href="#news">News</a></li>
-			  <li><a href="#contact">Contact</a></li>
-			  <li style="float:right"><a class="active" href="#about">About</a></li>
+			<ul class=navlist>
+			  <li class=fleft><a href="/">Home</a></li>
+			  <li class=fleft><a href="/class">Classrooms</a></li>
+			  <li class=fleft><a href="/indicator">Indicators</a></li>
+			  <li class=fleft><a href="/about">About</a></li>
+			  <li class=fleft style="float:right"><a class="active" href="/login">Admin Login</a></li>
 			</ul>
 		</nav>
 	</header>
+
+	<div class="content">
+
+		{% if flashyMsg|length > 0%}
+		<div class="flashy">
+			{{flashyMsg}}				
+		</div>
+		<br><br>
+		{% endif %}

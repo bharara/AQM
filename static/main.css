@@ -1,49 +1,108 @@
-ul {
- 			list-style-type: none;
- 			margin: 0;
- 			padding: 0;
- 			overflow: hidden;
- 			background-color: #333;
-			}
+.navlist {
+	list-style-type: none;
+	margin: 0;
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	overflow: hidden;
+	background-color: #333;
+	border-radius: 4%;
+}
 
-		li {
-  			float: left;
-			}
+.fleft {
+	float: left;
+}
 
-		li a {
- 			display: block;
-			color: white;
-  			text-align: center;
-  			padding: 14px 16px;
-  			text-decoration: none;
-			}
+.fleft a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
 
 /* Change the link color to #111 (black) on hover */
-		li a:hover {
-	 		background-color: #111;}
-		
-		body {
-  			background-repeat: no-repeat;
- 			background-position: center;
-			}
+.fleft a:hover {
+	background-color: #111;
+	color: white;
+}
 
-		footer {
-  			background-color: #777;
-  			padding: 10px;
-  			text-align: center;
- 			color: white;
-			}
+body {
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+footer, .heading {
+	background-color: #777;
+	padding: 10px;
+	text-align: center;
+	color: white;
+}
+
+.heading {
+	background-color: #777;
+	padding: 10px;
+	text-align: center;
+	color: white;
+	width: 70%;
+	margin: auto
+}
 
 /* Style the content */
-		.content {
-	   		display: table;
-   			width: 100%;
-  			height:510px;
-			}
+.content {
+	display: table;
+	width: 100%;
+	min-height: 410px; 
+	padding: 4%;
+}
 
-		.form {
-			display: table-cell;
-   			text-align: center;
-   			width: 20%;
-   			vertical-align: middle;
-			}
+.block {
+	
+	text-align: center;
+	width: 100%;
+}
+
+form {
+	margin:auto;
+	width: 15%;
+	background-color: #333;
+	border-radius: 30px;
+	color: white;
+
+}
+
+.flashy {
+	background-color: #F7E50D;
+	color: white;
+	border-radius: 10px;
+	max-width: 30%;
+	margin:auto;
+	text-align: center;
+	padding: 10px;
+}
+
+.menu {
+	list-style-type: none;
+	margin: 0;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	overflow: hidden;
+	background-color: #333;
+	width: 68%;
+	margin: auto
+}
+
+li a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+/* Change the link color to #111 (black) on hover */
+li a:hover {
+	background-color: #111;
+	color: white;
+}

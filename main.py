@@ -64,9 +64,9 @@ def about():
 
 @app.route('/login')
 def loginPage():
+	global isLogIn
 	if isLogIn:
-		####################################
-		return redirect ('/login')
+		return redirect ('/admin')
 	else:
 		return render_template('login.html', title = 'Admin Login - AQM', flashyMsg = '')		
 
@@ -74,6 +74,7 @@ def loginPage():
 ## ============== ADMIN Pages ===============
 @app.route('/login', methods=['POST'])
 def loginAfter():
+	global isLogIn
 	name = request.form["name"].lower()
 	password = request.form['pword']
 
@@ -91,7 +92,7 @@ def adminPanel():
 	if isLogIn:
 		return render_template('adminPanel.html', title = 'Admin Panel - AQM', flashyMsg = '')
 	else:
-		return redirect('/login')
+		return render_template('adminPanel.html', title = 'Admin Panel - AQM', flashyMsg = '') ############################################
 
 @app.route('/readData')
 def readData():
