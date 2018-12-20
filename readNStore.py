@@ -19,7 +19,7 @@ def readAndStore():
 			total1 = 0
 			total2 = 0
 			for n in range(30):
-				i, j = str(ser.readline())[2:9].split(',')
+				i, j = str(ser.readline())[2:-5].split(',')
 				i = int(i)
 				j = int(j)
 				total1 += i
