@@ -23,14 +23,13 @@
 }
 
 /* Change the link color to #111 (black) on hover */
-.fleft a:hover {
-	background-color: #111;
-	color: white;
-}
+
 
 body {
 	background-repeat: no-repeat;
 	background-position: center;
+	background: url(/static/backg.jpg);
+	height: 100%;
 }
 
 footer, .heading {
@@ -45,7 +44,7 @@ footer, .heading {
 	padding: 10px;
 	text-align: center;
 	color: white;
-	width: 70%;
+	width: 50%;
 	margin: auto
 }
 
@@ -89,7 +88,7 @@ form {
 	padding-bottom: 4px;
 	overflow: hidden;
 	background-color: #333;
-	width: 68%;
+	width: 48%;
 	margin: auto
 }
 
@@ -103,6 +102,7 @@ li a {
 
 /* Change the link color to #111 (black) on hover */
 li a:hover {
+	padding: 14px 16px;
 	background-color: #111;
 	color: white;
 }

@@ -1,0 +1,38 @@
+
+	{% include "head.html" %}
+
+	<h1 class="heading"> {{title}} </h1>
+	<script>
+		window.onload = function () {
+
+		var chart = new CanvasJS.Chart("chartContainer", {
+		animationEnabled: true,
+		theme: "light2",
+
+		axisY:{
+			includeZero: false,
+			title: "People"
+		},
+		data: [{        
+		
+		type: "line",       
+		dataPoints: [
+
+			{% for i in data %}
+			{ x: {{i[0]}}, y: {{i[1]}} },
+			{% endfor %}
+
+			]
+		}]	
+		});
+		chart.render();
+
+		}
+	</script>
+
+<div id="chartContainer" style="height: 370px; width: 50%; margin:auto;"></div>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	
+</div>
+</body>
+</html>
