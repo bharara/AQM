@@ -11,11 +11,11 @@ live = []
 def serverSetup ():
 	global conn, SensorDB
 	conn = pymysql.connect(
-    host='127.0.0.1',
-    port=3306,
-    user='root',
-    passwd='090078601',
-    db='sensor')
+	    host='127.0.0.1',
+	    port=3306,
+	    user='root',
+	    passwd='090078601',
+	    db='sensor')
 	SensorDB = conn.cursor()
 
 def readAndStore(ser, room, numberOfPeople):
@@ -80,7 +80,7 @@ def classRoom():
 		elif i[1] > avg + 20:
 			colorDic[i[0]] = "green"
 		else:
-			colorDic[i[0]] = "yellow"
+			colorDic[i[0]] = "#AABA02"
 
 	return render_template('class.html', title = "Classrooms - AQM", colorDic=colorDic)
 
