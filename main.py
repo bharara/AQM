@@ -203,7 +203,7 @@ def readDataAfter():
 			return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "Sensor Not Connected", Notreading=True)
 		
 		readAndStore(ser, room, numberOfPeople)
-		return reditect('/live')
+		return redirect('/live')
 	else:
 		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "This classroom doesn't exist", Notreading=True)
 
