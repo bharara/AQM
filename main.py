@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import pymysql
 import serial
+import webbrowser
 
 app = Flask(__name__)
 isLogIn = False
+live = []
 
 ## ====================  SQL FUNCTIONS ========================
 def serverSetup ():
@@ -20,14 +22,21 @@ def readAndStore(ser, room, numberOfPeople):
 	try:
 		SensorDB.execute('Select max(idData) from data')
 		startingPoint = SensorDB.fetchall()[0][0]
-		while keepReading():
-			total = 0
+		count = 0
+		while True:
+			total1 = 0
+			total2 = 0
 			for n in range(30):
-				j = int(str(ser.readline())[2:4])
-				total += j
-			SensorDB.execute("""INSERT INTO data (value) VALUES ("%d")"""
-			% (total/30))
-		conn.commit()
+				i, j = str(ser.readline())[2:-5].split(',')
+				i = int(i)
+				j = int(j)
+				total1 += i
+				total2 += j
+				live.append([count*30 + n, i,j])
+
+			SensorDB.execute("""INSERT INTO data (val1, val2) VALUES ("%d", "%d")""" % (total1/30, total2/30))
+			count+=1
+			conn.commit()
 	except serial.serialutil.SerialException:
 		if startingPoint != 0:
 			stopReading(startingPoint, room, numberOfPeople)
@@ -38,8 +47,8 @@ def stopReading(startingPoint, room, numberOfPeople):
 	SensorDB.execute('Select max(idData) from data')
 	endingPoint = SensorDB.fetchall()[0][0]
 	SensorDB.execute("""INSERT INTO readings (classRoom, startInstance, endInstance, people)
-		VALUES  ("%d", "%s", "%d", "%d")"""
-		% (startingPoint, room, endingPoint, numberOfPeople))
+		VALUES  ("%s", "%d", "%d", "%d")"""
+		% (room, int(startingPoint), int(endingPoint), int(numberOfPeople)))
 	conn.commit()
 
 ## ========================  WEBSITE ==========================
@@ -50,15 +59,54 @@ def Index():
 
 @app.route('/class')
 def classRoom():
-	return render_template('classroom.html', title = "Classrooms - AQM")
+	SensorDB.execute("""SELECT AVG(val1), AVG(val2)
+			FROM data, readings
+			WHERE idData >= readings.startInstance
+			AND idData < readings.endInstance""")
+	data = SensorDB.fetchall()
+	avg = data[0][0] + data[0][1]
+
+	SensorDB.execute("""SELECT classroom, AVG(val1)+AVG(val2)
+			FROM data, readings
+			WHERE idData >= readings.startInstance
+			AND idData < readings.endInstance
+			GROUP BY classroom""")
+	data = SensorDB.fetchall()
+
+	colorDic = {}
+	for i in data:
+		if i[1] < avg - 20:
+			colorDic[i[0]] = "red"
+		elif i[1] > avg + 20:
+			colorDic[i[0]] = "green"
+		else:
+			colorDic[i[0]] = "yellow"
+
+	return render_template('class.html', title = "Classrooms - AQM", colorDic=colorDic)
+
+@app.route('/class/<name>')
+def classRoom2(name):
+
+	SensorDB.execute("""SELECT val1, val2
+			FROM data, readings
+			WHERE idData >= readings.startInstance
+			AND idData < readings.endInstance
+			AND classroom = "%s";
+			"""
+			% (name))
+	d = SensorDB.fetchall()
+	n = 1
+	data = []
+	for i in d:
+		data.append([n, i[0], i[1]])
+		n += 1
+
+	return render_template('classInd.html', title=name.upper(), data=data)
 
 @app.route('/indicators')
 def indicator():
+	return render_template('indicators.html', title = "Indicators - AQM")
 
-	ch4 = [[10,481], [40,682], [30,911], [35,441]]
-	return render_template('indicators.html', title = "Indicators - AQM", ch4=sorted(ch4))
-
-#User Report Shown
 @app.route('/indicators/<name>')
 def indicator2(name):
 
@@ -93,8 +141,8 @@ def indicator2(name):
 	return render_template('indicatorsChar.html', title=title, data=sorted(data))
 
 @app.route('/live')
-def live():
-	return render_template('live.html', title = "Live Data - AQM")
+def liveData():
+	return render_template('liveData.html', title = "This Session Data", data=live)
 
 @app.route('/about')
 def about():
@@ -137,7 +185,7 @@ def adminPanel():
 def readData():
 	global isLogIn
 	if isLogIn:
-		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = '')
+		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = '', Notreading = True)
 	else:
 		return redirect('/login')
 
@@ -152,12 +200,12 @@ def readDataAfter():
 		try:
 			ser = serial.Serial('COM5', 9600)
 		except:
-			return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "Sensor Not Connected")
-
-		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "Data Reading Has started", reading = True)
+			return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "Sensor Not Connected", Notreading=True)
+		
 		readAndStore(ser, room, numberOfPeople)
+		return reditect('/live')
 	else:
-		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "This classroom doesn't exist")
+		return render_template('readData.html', title = 'Data Reading - AQM', flashyMsg = "This classroom doesn't exist", Notreading=True)
 
 @app.route('/addCR',)
 def addCR():

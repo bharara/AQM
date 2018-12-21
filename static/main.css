@@ -92,6 +92,13 @@ form {
 	margin: auto
 }
 
+li {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+}
+
 li a {
 	display: block;
 	color: white;
@@ -105,4 +112,41 @@ li a:hover {
 	padding: 14px 16px;
 	background-color: #111;
 	color: white;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    border: 0;
+    text-align: center;
+    width: 100px;
+    height: 100px; 
+    background-color: gray;  
+}
+
+td a {
+	text-decoration: none;
+    color: white;
+}
+
+td a:hover {
+	color: black;
+	background-color: white;
+}
+
+p {
+	color: white;
+	font-size: 14px;
+}
+
+p a {
+	color: white;
+	text-decoration: none;
+}
+
+p a:hover {
+	color: black;
+	background-color: white;
 }

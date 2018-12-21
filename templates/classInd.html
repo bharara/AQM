@@ -1,0 +1,77 @@
+
+	{% include "head.html" %}
+
+	<h1 class="heading"> {{title}} </h1>
+	<script>
+		window.onload = function () {
+			var chart = new CanvasJS.Chart("chartContainer", {
+
+			axisY:[{
+				title: "Smoke",
+				lineColor: "#C24642",
+				tickColor: "#C24642",
+				labelFontColor: "#C24642",
+				titleFontColor: "#C24642",
+			},
+			{
+				title: "CH4",
+				lineColor: "#369EAD",
+				tickColor: "#369EAD",
+				labelFontColor: "#369EAD",
+				titleFontColor: "#369EAD",
+			}],
+			
+			toolTip: {
+				shared: true
+			},
+			legend: {
+				cursor: "pointer",
+				itemclick: toggleDataSeries
+			},
+			data: [{
+				type: "line",
+				name: "CH4",
+				color: "#369EAD",
+				showInLegend: true,
+				axisYIndex: 1,
+				dataPoints: [
+					{% for i in data %}
+					{ x: {{i[0]}}, y: {{i[1]}} },
+					{% endfor %}
+				]
+			},
+			{
+				type: "line",
+				name: "Smoke",
+				color: "#C24642",
+				axisYIndex: 0,
+				showInLegend: true,
+				dataPoints: [
+					{% for i in data %}
+					{ x: {{i[0]}}, y: {{i[2]}} },
+					{% endfor %}
+					
+				]
+			},
+			]
+		});
+		chart.render();
+
+		function toggleDataSeries(e) {
+			if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+				e.dataSeries.visible = false;
+			} else {
+				e.dataSeries.visible = true;
+			}
+			e.chart.render();
+		}
+
+		}
+</script>
+
+<div id="chartContainer" style="height: 370px; width: 50%; margin:auto;"></div>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	
+</div>
+</body>
+</html>
