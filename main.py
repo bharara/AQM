@@ -20,8 +20,10 @@ def serverSetup ():
 
 def readAndStore(ser, room, numberOfPeople):
 	try:
-		SensorDB.execute('Select max(idData) from data')
+		SensorDB.execute("""SELECT MAX(idData)
+			FROM data""")
 		startingPoint = SensorDB.fetchall()[0][0]
+		
 		count = 0
 		while True:
 			total1 = 0
